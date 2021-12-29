@@ -60,6 +60,12 @@
 
 #define USE_HW_SPI 255 // Assign this to dataPin to indicate 'hard' SPI
 
+#ifdef DOTSTAR_SPI1
+    #define spi_out(n) (void)SPI1.transfer(n)
+#else
+    #define spi_out(n) (void)SPI.transfer(n)
+#endif
+
 // Constructor for hardware SPI -- must connect to MOSI, SCK pins
 Adafruit_DotStar::Adafruit_DotStar(uint16_t n, uint8_t o) :
  numLEDs(n), dataPin(USE_HW_SPI), brightness(0), pixels(NULL),
@@ -127,17 +133,31 @@ void Adafruit_DotStar::updateLength(uint16_t n) {
 // SPI STUFF ---------------------------------------------------------------
 
 void Adafruit_DotStar::hw_spi_init(void) { // Initialize hardware SPI
-  SPI.begin();
-  // 72MHz / 4 = 18MHz (sweet spot)
-  // Any slower than 18MHz and you are barely faster than Software SPI.
-  // Any faster than 18MHz and the code overhead dominates.
-  SPI.setClockDivider(SPI_CLOCK_DIV4);
-  SPI.setBitOrder(MSBFIRST);
-  SPI.setDataMode(SPI_MODE0);
+#ifdef DOTSTAR_SPI1
+    SPI1.begin();
+    // 72MHz / 4 = 18MHz (sweet spot)
+    // Any slower than 18MHz and you are barely faster than Software SPI.
+    // Any faster than 18MHz and the code overhead dominates.
+    SPI1.setClockDivider(SPI_CLOCK_DIV4);
+    SPI1.setBitOrder(MSBFIRST);
+    SPI1.setDataMode(SPI_MODE0);
+#else
+    SPI.begin();
+    // 72MHz / 4 = 18MHz (sweet spot)
+    // Any slower than 18MHz and you are barely faster than Software SPI.
+    // Any faster than 18MHz and the code overhead dominates.
+    SPI.setClockDivider(SPI_CLOCK_DIV4);
+    SPI.setBitOrder(MSBFIRST);
+    SPI.setDataMode(SPI_MODE0);
+#endif
 }
 
 void Adafruit_DotStar::hw_spi_end(void) { // Stop hardware SPI
-  SPI.end();
+#ifdef DOTSTAR_SPI1
+    SPI1.end();
+#else
+    SPI.end();
+#endif
 }
 
 void Adafruit_DotStar::sw_spi_init(void) { // Init 'soft' (bitbang) SPI
